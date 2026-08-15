@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
     }
 
     // List view: exclude the heavy 'content' column to save bandwidth & memory!
-    const data = await sql`SELECT id, title, summary, url, image, published_date, tags FROM blogs ORDER BY published_date DESC`
+    // `slug` is needed for canonical links; `content` stays excluded because it
+    // is the heavy column this list endpoint exists to avoid shipping.
+    const data = await sql`SELECT id, slug, title, summary, url, image, published_date, tags FROM blogs ORDER BY published_date DESC`
     return NextResponse.json(data || [])
   } catch (err) {
     console.error('GET /api/blogs error', err)

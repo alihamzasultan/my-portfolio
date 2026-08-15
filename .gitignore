@@ -75,3 +75,6 @@ vite.config.ts.timestamp-*
 
 # Project memory file
 MEMORY.md
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo

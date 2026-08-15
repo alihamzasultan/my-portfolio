@@ -47,17 +47,21 @@ export default function HeroCard({
             opacity: 0.05,
           }}
         />
-        {/* Tilted Yellow Sticky Note in top-right */}
-        <div className="absolute top-4 right-4 z-30 bg-[#fef08a] text-black border-2 border-black px-4 py-2.5 shadow-[4px_4px_0_#000] rotate-[-4deg] select-none pointer-events-none font-mono">
-          {/* Metal Paperclip */}
-          <div className="absolute -top-3.5 left-4 text-zinc-500 transform rotate-12">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-3.31 2.69-6 6-6s6 2.69 6 6v12.5c0 4.42-3.58 8-8 8s-8-3.58-8-8V6h2v11.5c0 3.31 2.69 6 6 6s6-2.69 6-6V5c0-2.21-1.79-4-4-4s-4 1.79-4 4v12.5c0 1.1.9 2 2 2s2-.9 2-2V6h2z"/>
-            </svg>
+        {/* Tilted Yellow Sticky Note. Kept in normal flow rather than absolutely
+            positioned: the badge text is author-supplied and can be long, so
+            overlaying it would collide with the heading at some lengths. */}
+        <div className="relative z-30 mb-6 flex justify-end pt-3 pr-1">
+          <div className="relative max-w-full bg-[#fef08a] text-black border-2 border-black px-4 py-2.5 shadow-[4px_4px_0_#000] rotate-[-4deg] select-none pointer-events-none font-mono">
+            {/* Metal Paperclip */}
+            <div className="absolute -top-3.5 left-4 text-zinc-500 transform rotate-12">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-3.31 2.69-6 6-6s6 2.69 6 6v12.5c0 4.42-3.58 8-8 8s-8-3.58-8-8V6h2v11.5c0 3.31 2.69 6 6 6s6-2.69 6-6V5c0-2.21-1.79-4-4-4s-4 1.79-4 4v12.5c0 1.1.9 2 2 2s2-.9 2-2V6h2z"/>
+              </svg>
+            </div>
+            <p className="text-base sm:text-lg font-black leading-tight uppercase tracking-wider px-1 text-balance">
+              {badge}
+            </p>
           </div>
-          <p className="text-xl sm:text-2xl font-black leading-none uppercase tracking-wider px-1">
-            {badge}
-          </p>
         </div>
 
         {/* Notebook Red Margin Line */}
@@ -80,8 +84,8 @@ export default function HeroCard({
             <a href="#experience" className="neo-btn neo-btn-lime min-h-[44px]" aria-label="Navigate to experience section">
               See Experience
             </a>
-            <a href="#certifications" className="neo-btn neo-btn-yellow min-h-[44px]" aria-label="Navigate to certifications section">
-              Certifications
+            <a href="#blogs" className="neo-btn neo-btn-yellow min-h-[44px]" aria-label="Navigate to blogs section">
+              Blogs
             </a>
           </div>
         </div>

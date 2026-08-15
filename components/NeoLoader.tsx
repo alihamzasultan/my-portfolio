@@ -10,6 +10,7 @@ export function NeoLoaderVisual() {
       <div className="neo-card neo-card-alt w-20 h-20 p-2 flex items-center justify-center -rotate-2">
         <img src="/favicon.svg?v=3" alt="" width={64} height={64} className="w-full h-full object-contain" />
       </div>
+      {/* The blocks carry the loading signal on their own — no text label. */}
       <div className="neo-loader">
         <span style={{ background: 'var(--neo-blue)' }} />
         <span style={{ background: 'var(--neo-cyan)' }} />
@@ -18,7 +19,7 @@ export function NeoLoaderVisual() {
         <span style={{ background: 'var(--neo-yellow)' }} />
         <span style={{ background: 'var(--neo-pink)' }} />
       </div>
-      <div className="neo-tag neo-tag-yellow uppercase tracking-widest">Loading…</div>
+      <span className="sr-only">Loading</span>
     </div>
   )
 }

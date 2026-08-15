@@ -653,28 +653,43 @@ html.dark-mode .neo-floaty { opacity: 0.6; }
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.35); }
 }
+/* Loading indicator: the blocks alone carry the signal, so the motion has to
+   read clearly — a taller hop, a full quarter-turn, and a scale pulse. */
 .neo-loader {
   display: flex;
-  gap: 8px;
+  gap: 9px;
   align-items: flex-end;
-  height: 40px;
+  height: 58px;
 }
 .neo-loader span {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 2px solid var(--neo-border);
   box-shadow: 2px 2px 0 0 var(--neo-shadow);
-  animation: neoLoaderBounce 0.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  transform-origin: center;
+  animation: neoLoaderBounce 1s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 .neo-loader span:nth-child(1) { animation-delay: 0s; }
-.neo-loader span:nth-child(2) { animation-delay: 0.1s; }
-.neo-loader span:nth-child(3) { animation-delay: 0.2s; }
-.neo-loader span:nth-child(4) { animation-delay: 0.3s; }
-.neo-loader span:nth-child(5) { animation-delay: 0.4s; }
-.neo-loader span:nth-child(6) { animation-delay: 0.5s; }
+.neo-loader span:nth-child(2) { animation-delay: 0.09s; }
+.neo-loader span:nth-child(3) { animation-delay: 0.18s; }
+.neo-loader span:nth-child(4) { animation-delay: 0.27s; }
+.neo-loader span:nth-child(5) { animation-delay: 0.36s; }
+.neo-loader span:nth-child(6) { animation-delay: 0.45s; }
 @keyframes neoLoaderBounce {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  40%      { transform: translateY(-22px) rotate(45deg); }
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  35%      { transform: translateY(-30px) rotate(90deg) scale(1.18); }
+  70%      { transform: translateY(0) rotate(180deg) scale(0.92); }
+}
+
+/* Respect users who have asked for reduced motion: fade instead of hop. */
+@media (prefers-reduced-motion: reduce) {
+  .neo-loader span {
+    animation: neoLoaderPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes neoLoaderPulse {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 1; }
+  }
 }
 
 /* Typewriter caret — inline so it follows the text across line wraps (mobile) */
@@ -764,6 +779,73 @@ html.dark-mode .neo-floaty { opacity: 0.6; }
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.875rem;
   font-weight: 700;
+}
+
+/* ---------- Tables ---------- */
+/* The wrapper scrolls so a wide table never forces the page to scroll. */
+.neo-markdown-body .neo-table-wrap {
+  overflow-x: auto;
+  margin: 1.75rem 0;
+  border: 2px solid var(--neo-border);
+  box-shadow: var(--neo-shadow-sm);
+}
+
+.neo-markdown-body .neo-md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: var(--neo-surface);
+}
+
+.neo-markdown-body .neo-md-table th {
+  background: var(--neo-yellow);
+  color: #111;
+  font-weight: 800;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--neo-border);
+  white-space: nowrap;
+}
+
+.neo-markdown-body .neo-md-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--neo-border) 25%, transparent);
+  vertical-align: top;
+}
+
+.neo-markdown-body .neo-md-table tr:last-child td { border-bottom: none; }
+.neo-markdown-body .neo-md-table tbody tr:nth-child(even) { background: var(--neo-bg-alt); }
+
+/* ---------- Charts ---------- */
+.neo-markdown-body .neo-chart {
+  margin: 1.75rem 0;
+  padding: 1.25rem;
+  border: 2px solid var(--neo-border);
+  background: var(--neo-surface);
+  box-shadow: var(--neo-shadow-sm);
+  color: var(--neo-ink);
+  overflow-x: auto;
+}
+
+.neo-markdown-body .neo-chart-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.9rem;
+}
+
+.neo-markdown-body .neo-chart-caption {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* ---------- Lists ---------- */
+.neo-markdown-body .neo-md-list {
+  margin: 1rem 0;
+  padding-left: 0;
 }
 
 .neo-markdown-body .neo-md-li {

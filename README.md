@@ -1,108 +1,122 @@
-# ⚡ Aman Kumar Jha | Portfolio
+# Ali Hamza Sultan | Portfolio
 
-A premium, high-fidelity portfolio website engineered with a **Neobrutalist Design System**, dynamic **Blogs Engine**, and a secure **Unified Admin Console**.
+A portfolio site built with a **neobrutalist design system**, a database-driven content layer, a Markdown blog engine, and a secure admin console.
 
-Built on **Next.js 16 (App Router)** and backed by **Neon Serverless Postgres** and **Vercel Blob Storage**, this portfolio is optimized for speed, interactivity, and SEO.
-
-* 🌐 **Live Website**: [https://my-portfolio-sage-one-tkdyh3sfni.vercel.app](https://my-portfolio-sage-one-tkdyh3sfni.vercel.app)
+Built on **Next.js 16 (App Router)** with **Neon Serverless Postgres** and **Vercel Blob**, and tuned for SEO — server-rendered articles, canonical slug URLs, and JSON-LD structured data.
 
 ---
 
-## 🎨 Design Philosophy: Neobrutalism
-The user interface breaks away from generic modern layouts by fully adopting a bold **Neobrutalist Theme**:
-* **High Contrast Elements**: Solid thick borders (`border-2 border-black`), offset shadows (`shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`), and high-saturation background highlights (`bg-neo-yellow`, `bg-neo-pink`, `bg-neo-blue`).
-* **Visual Playfulness**: Card tilts, rotating action buttons, and active menu animations.
-* **Responsive Layouts**: Designed mobile-first, ensuring all neobrutalist cards, typewriters, and grids auto-scale perfectly.
+## Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Framework | Next.js 16 (App Router, Turbopack) |
+| UI | React 19, TypeScript, Tailwind CSS v4 |
+| Database | Neon Serverless Postgres |
+| File storage | Vercel Blob |
+| Auth | NextAuth (credentials, PBKDF2-SHA512) |
+| SEO | Metadata API, JSON-LD, dynamic sitemap |
 
 ---
 
-## 🛠️ Technology Stack
+## Features
 
-| Layer | Technologies | Key Features |
-| :--- | :--- | :--- ||
-| **Frontend** | React 19, TypeScript, Vanilla CSS | Custom animations, responsive components, viewport scroll metrics. |
-| **Framework** | Next.js 16 (App Router with Turbopack) | ISR page caching, Edge middleware routing, Turbopack compiling. |
-| **Database** | Neon Serverless Postgres | SQL pool connections, dynamic content persistence. |
-| **File Storage** | Vercel Blob | Public CDN storage for media uploads (up to 50MB). |
-| **Authentication** | NextAuth.js (Credentials Provider) | Hashed password verification, Edge JWT session validation. |
-| **SEO & Sitemap** | Next Sitemap, JSON-LD Schema | Search Engine Optimization, Google schema data indexing. |
+### Content driven by the database
+Hero, expertise cards, projects, experience and contact details all read from Postgres, so the site is editable without a redeploy. The homepage is cached with ISR (`revalidate = 3600`).
 
----
+### Blog engine
+- Canonical slug URLs (`/blogs/<slug>`); numeric ids still resolve but are marked `noindex`
+- Server-rendered so search engines and LLM crawlers see the full article HTML
+- `BlogPosting`, `BreadcrumbList` and auto-extracted `FAQPage` structured data
+- Zero-dependency Markdown parser supporting tables, code blocks and inline SVG charts
 
-## 🚀 Key Features
-
-### 1. Unified Console Panel (`/console`)
-A secure administrative dashboard that enables live updates to portfolio data:
-* **Dashboard Cockpits**: Edit the **Hero Section** (badge, slogans, typewriter arrays), **Projects** (links, tags, media), **Experience** timeline, and **Expertise** domains.
-* **Blogs Form Cockpit**: Add, update, or delete blog articles with a large, spacious Markdown Content Textarea (`rows={12}`).
-* **Message Inbox**: Read client inquiries and messages sent via the contact form.
-
-### 2. Local Blogs Engine (`/blogs/[id]`)
-An integrated blogs page with a native, zero-dependency Markdown-to-HTML parser:
-* Converts Markdown tags (headers, blockquotes, lists, bold/italic, code blocks) to semantic HTML on the server.
-* Styled with neobrutalist classes (code highlighting with thick borders, highlighted H1/H2 header titles, blockquotes with thick left-border marks).
-* API routes are optimized: list fetches exclude heavy markdown columns to save bandwidth, while dynamic pages load single posts instantly by `id`.
-
-### 3. Settings Gear (⚙️) Live Customizer
-Logged-in administrators can edit contact numbers, social links, CV downloads, and upload WhatsApp QR codes directly on the live homepage.
-
-### 4. Dynamic Interactive Animations
-High-fidelity visual animations designed at the top of each expertise card (terminal coder outputs, active routing node flows, and SVG coordinate precision animations).
+### Admin console (`/console`)
+Edit the hero, projects, experience and blogs, upload media, and read contact-form submissions.
 
 ---
 
-## 🗄️ Database Schema Design
+## Database Schema
 
-Managed via Neon Postgres through the SQL client configuration (`lib/db.ts`):
-* `admins`: Password credential verification (`salt:hash` using SHA-512 PBKDF2).
-* `projects`: Listing unified AI/ML, Full-Stack, and Data Analytics applications.
-* `experiences`: Work history timelines.
-* `blogs`: Local blog posts and external redirect articles.
-* `site_cards`: Flexible configuration schemas for hero cards, dynamic footer data, and QR uploads.
-* `contact_messages`: Client contact inquiries.
+| Table | Purpose |
+| :--- | :--- |
+| `admins` | Console login (`salt:hash`, PBKDF2-SHA512) |
+| `projects` | Project entries with `slug`, tags and cover art |
+| `experiences` | Work history with explicit `sort_order` |
+| `blogs` | Posts with `slug`, `meta_description` and Markdown `content` |
+| `site_cards` | JSONB config for hero, expertise, contact and QR sections |
+| `contact_messages` | Contact-form submissions |
 
 ---
 
-## ⚙️ Setup and Installation
+## Setup
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/Its-amanjha/my-portfolio.git
-cd my-portfolio
-```
+### 1. Install
 
-### 2. Configure Environment Variables (`.env.local`)
-Create a `.env.local` file in the root directory:
-```env
-DATABASE_URL="your-neon-postgres-connection-string"
-BLOB_READ_WRITE_TOKEN="your-vercel-blob-token"
-NEXTAUTH_SECRET="your-jwt-auth-signing-secret"
-NEXTAUTH_URL="http://localhost:3000"
-ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD="secure-admin-password"
-```
-
-### 3. Install Dependencies
 ```bash
 npm install
 ```
 
-### 4. Initialize Database Tables and Admin Seed
+### 2. Configure `.env.local`
+
+Copy `.env.local.example` and fill it in:
+
+```env
+DATABASE_URL="your-neon-postgres-connection-string"
+BLOB_READ_WRITE_TOKEN="your-vercel-blob-token"
+NEXTAUTH_SECRET="a-long-random-string"
+NEXTAUTH_URL="http://localhost:3000"
+ADMIN_EMAIL="you@example.com"
+ADMIN_PASSWORD="a-secure-password"
+SITE_URL="https://your-domain.com"
+REVALIDATION_SECRET="a-random-token"
+```
+
+> The driver is `@neondatabase/serverless`, which talks to Neon's proxy. A plain
+> local Postgres will not work without running Neon's local proxy.
+
+### 3. Create tables and seed the admin account
+
 ```bash
 node scripts/create-tables.mjs
 ```
 
-### 5. Run Development Server
+### 4. Load content (optional)
+
+```bash
+node scripts/seed-content.mjs
+```
+
+Resets and repopulates projects, experience, blogs and site cards. Blog bodies
+live in `scripts/blogs-data.mjs`. It does not touch `admins` or `contact_messages`.
+
+### 5. Run
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-----
+Open <http://localhost:3000>. The admin console is at `/console`.
 
-## ✍️ Author
-**Aman Kumar Jha**
-* **Portfolio**: [https://my-portfolio-sage-one-tkdyh3sfni.vercel.app](https://my-portfolio-sage-one-tkdyh3sfni.vercel.app)
-* **GitHub**: [github.com/Its-amanjha](https://github.com/Its-amanjha)
-* **LinkedIn**: [linkedin.com/in/its-amanjha](https://linkedin.com/in/its-amanjha)
-* **Email**: [amanjhaa.work@gmail.com](mailto:amanjhaa.work@gmail.com)
+---
+
+## Scripts
+
+| Command | Purpose |
+| :--- | :--- |
+| `npm run dev` | Dev server (Turbopack) |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm run build:analyze` | Bundle analyzer |
+
+---
+
+## Author
+
+**Ali Hamza Sultan** — AI Automation Engineer
+
+- GitHub: [github.com/alihamzasultan](https://github.com/alihamzasultan)
+- LinkedIn: [ali-hamza-sultan](https://www.linkedin.com/in/ali-hamza-sultan-ai-automation-engineer/)
+- Email: [alihamzasultan6@gmail.com](mailto:alihamzasultan6@gmail.com)
+
+Licensed under the MIT License — see [LICENSE](LICENSE).

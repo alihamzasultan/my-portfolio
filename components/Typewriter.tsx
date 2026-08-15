@@ -7,6 +7,12 @@ interface TypewriterProps {
   typingSpeed?: number
   deletingSpeed?: number
   pauseDuration?: number
+  /**
+   * 'card' (default) renders the rotated colour-cycling card used historically.
+   * 'terminal' renders a white bordered console box with a `>` prompt, and uses
+   * a <p> rather than an <h1> so it can sit under a real page heading.
+   */
+  variant?: 'card' | 'terminal'
 }
 
 // The 6 section colors
@@ -24,6 +30,7 @@ export default function Typewriter({
   typingSpeed = 100,
   deletingSpeed = 50,
   pauseDuration = 2000,
+  variant = 'card',
 }: TypewriterProps) {
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0)
   const [currentText, setCurrentText] = useState('')
@@ -57,6 +64,22 @@ export default function Typewriter({
 
     return () => clearTimeout(timeout)
   }, [currentText, isDeleting, currentSentenceIndex, sentences, typingSpeed, deletingSpeed, pauseDuration])
+
+  if (variant === 'terminal') {
+    return (
+      <div className="flex w-full justify-center">
+        <div className="inline-block max-w-full border-2 border-black bg-[color:var(--neo-surface)] px-5 py-4 shadow-[6px_6px_0_#000] sm:px-7">
+          <p className="min-h-[2.5rem] break-words font-mono text-lg font-bold leading-snug text-[color:var(--neo-ink)] sm:text-2xl md:text-3xl">
+            <span className="mr-2 text-[color:var(--neo-ink-soft)]" aria-hidden="true">
+              &gt;
+            </span>
+            {currentText}
+            <span className="neo-caret" />
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mb-12 flex justify-center">

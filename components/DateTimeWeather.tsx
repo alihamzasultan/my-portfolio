@@ -19,16 +19,16 @@ function DateTimeWeather() {
 
   const [isNight, setIsNight] = useState(false)
 
-  // 1. Live Time Update (New Delhi Time Zone)
+  // 1. Live Time Update (Karachi Time Zone)
   useEffect(() => {
     setMounted(true)
     const updateTime = () => {
       const now = new Date()
       
-      // Safe Hour parsing for Delhi night shift check
+      // Safe Hour parsing for Karachi night shift check
       const delhiHour = parseInt(
         new Intl.DateTimeFormat('en-US', {
-          timeZone: 'Asia/Kolkata',
+          timeZone: 'Asia/Karachi',
           hour: 'numeric',
           hour12: false
         }).format(now),
@@ -36,16 +36,16 @@ function DateTimeWeather() {
       )
       setIsNight(delhiHour >= 18 || delhiHour < 6)
 
-      // Format Delhi Time
+      // Format Karachi Time
       const timeFormatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Kolkata',
+        timeZone: 'Asia/Karachi',
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
       })
       
       const dateFormatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Kolkata',
+        timeZone: 'Asia/Karachi',
         weekday: 'short',
         month: 'short',
         day: 'numeric'
@@ -60,7 +60,7 @@ function DateTimeWeather() {
     return () => clearInterval(timer)
   }, [])
 
-  // 2. Fetch Delhi Weather from Open-Meteo (resilient, keyless)
+  // 2. Fetch Karachi Weather from Open-Meteo (resilient, keyless)
   useEffect(() => {
     if (!mounted) return
 
@@ -74,9 +74,9 @@ function DateTimeWeather() {
           return
         }
 
-        // Delhi Coordinates: Lat 28.6139, Lon 77.2090
+        // Karachi Coordinates: Lat 24.8607, Lon 67.0011
         const res = await fetch(
-          'https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.2090&current=temperature_2m,weather_code'
+          'https://api.open-meteo.com/v1/forecast?latitude=24.8607&longitude=67.0011&current=temperature_2m,weather_code'
         )
         if (!res.ok) throw new Error('API failure')
         const data = await res.json()
@@ -114,7 +114,7 @@ function DateTimeWeather() {
   if (!mounted) {
     return (
       <div className="neo-card p-4 bg-neo-pink/10 border-2 border-[color:var(--neo-border)] min-h-[82px] flex items-center justify-center animate-pulse">
-        <span className="font-bold text-xs uppercase tracking-wider">Syncing Delhi Time &amp; Weather…</span>
+        <span className="font-bold text-xs uppercase tracking-wider">Syncing Karachi Time &amp; Weather…</span>
       </div>
     )
   }
@@ -480,7 +480,7 @@ function DateTimeWeather() {
         {/* Left Section: Time & Date */}
         <div className="text-left">
           <div className="text-xs font-black uppercase tracking-widest text-current opacity-60 mb-0.5">
-            Delhi Time
+            Karachi Time
           </div>
           <div className="text-lg font-black font-mono tracking-wider text-current tabular-nums">
             {time}

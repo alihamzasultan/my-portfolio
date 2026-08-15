@@ -15,6 +15,6 @@ export default function robots(): MetadataRoute.Robots {
         crawlDelay: 0,
       },
     ],
-    sitemap: 'https://amanbuilds.me/sitemap.xml',
+    sitemap: 'https://alihamzasultan.vercel.app/sitemap.xml',
   }
 }

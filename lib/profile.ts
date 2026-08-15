@@ -2,38 +2,41 @@
  * Centralized personal profile configuration.
  * Modify this file to update your name, bio, social media profiles,
  * and contact links across the entire application instantly.
+ *
+ * These values act as fallbacks — anything set in the `site_cards` table via
+ * the /console admin panel takes precedence over what is defined here.
  */
 export const profile = {
   // Personal Details
-  name: "Aman Kumar Jha",
-  title: "AI & Full-Stack Engineer",
-  email: "amanjhaa.work@gmail.com",
-  phone: "+91 92170 36208", // Customize this with your contact number
-  location: "New Delhi, India", // Customize this with your location
-  
+  name: "Ali Hamza Sultan",
+  title: "AI Automation Engineer",
+  email: "alihamzasultan6@gmail.com",
+  phone: "+92 370 3108724",
+  location: "Karachi, Pakistan",
+
   // Typewriter phrases displayed on the home page hero section
   typewriterSentences: [
-    "Hello, I'm Aman.",
-    "AI & Full-Stack Engineer.",
-    "Machine Learning & Deep Learning Specialist.",
-    "I build intelligent systems.",
-    "From models to production.",
-    "Engineering real-world AI solutions."
+    "Hello, I'm Ali Hamza Sultan.",
+    "AI Automation Engineer.",
+    "I build agentic AI systems.",
+    "Real-time voice agents that book appointments.",
+    "RAG architectures and LLM orchestration.",
+    "From prototype to production."
   ],
-  
+
   // High-level profile summary / biography
-  bio: "I am an AI, Full-Stack, and Data Analyst professional focused on building smart, data-driven solutions. I work with machine learning, software development, and data analytics to turn data into useful insights and practical applications. I enjoy solving real-world problems and building end-to-end solutions from data processing to deployment and visualization.",
-  
+  bio: "AI Automation Engineer and Computer Science Lecturer building production-grade agentic AI systems, real-time conversational voice agents, and full-stack automation pipelines. I work across voice AI, low-code orchestration, LLM integration and RAG architectures — turning models into systems that book appointments, move data between CRMs, and run without supervision.",
+
   // Social media and profile links
   socialLinks: {
-    github: "https://github.com/Its-amanjha",
-    linkedin: "https://linkedin.com/in/its-amanjha",
-    x: "https://x.com/your-x-username",
-    whatsapp: "https://wa.me/919217036208", // WhatsApp link (use wa.me format)
+    github: "https://github.com/alihamzasultan",
+    linkedin: "https://www.linkedin.com/in/ali-hamza-sultan-ai-automation-engineer/",
+    x: "",
+    whatsapp: "https://wa.me/923703108724",
   },
-  
+
   // The path to your CV PDF file (stored in the /public directory)
-  cvPath: "/cv/Aman_CV.pdf",
+  cvPath: "/cv.pdf",
 }
 
 export default profile

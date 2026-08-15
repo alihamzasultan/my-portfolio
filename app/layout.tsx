@@ -1,6 +1,6 @@
 import './globals.css'
 import { ReactNode } from 'react'
-import { Inter } from 'next/font/google'
+import { Inter, Anton } from 'next/font/google'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import AppSessionProvider from '@/components/SessionProvider'
@@ -23,9 +23,21 @@ const inter = Inter({
   fallback: ['system-ui', 'arial'],
 })
 
+// Display face for the hero name — an ultra-condensed heavy grotesque.
+// next/font self-hosts this at build time, so there is no runtime request
+// to Google and no extra render-blocking round trip.
+const anton = Anton({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-anton',
+  preload: true,
+  weight: ['400'],
+  fallback: ['Impact', 'Haettenschweiler', 'sans-serif'],
+})
+
 // SEO metadata
 export const metadata: Metadata = {
-  metadataBase: new URL('https://amanbuilds.me'),
+  metadataBase: new URL('https://alihamzasultan.vercel.app'),
   title: {
     default: `${profile.name} | Portfolio`,
     template: `%s | ${profile.name}`,
@@ -48,7 +60,7 @@ export const metadata: Metadata = {
     'TensorFlow',
     'PyTorch',
   ],
-  authors: [{ name: profile.name, url: 'https://amanbuilds.me' }],
+  authors: [{ name: profile.name, url: 'https://alihamzasultan.vercel.app' }],
   creator: profile.name,
   publisher: profile.name,
   
@@ -56,7 +68,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://amanbuilds.me',
+    url: 'https://alihamzasultan.vercel.app',
     title: `${profile.name} | ${profile.title}`,
     description: profile.bio,
     siteName: `${profile.name} Portfolio`,
@@ -79,14 +91,9 @@ export const metadata: Metadata = {
     creator: `@${profile.name.toLowerCase()}`,
   },
 
-  // Search Console verification
-  verification: {
-    google: 'your-google-verification-code',
-  },
-
   // Canonical
   alternates: {
-    canonical: 'https://aman-kumar-jha.vercel.app',
+    canonical: 'https://alihamzasultan.vercel.app',
   },
 
   // SEO robots
@@ -174,7 +181,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               '@context': 'https://schema.org',
               '@type': 'Person',
               name: profile.name,
-              url: 'https://amanbuilds.me',
+              url: 'https://alihamzasultan.vercel.app',
               jobTitle: profile.title,
               description: profile.bio,
               sameAs: [
@@ -189,7 +196,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               },
               email: profile.email,
               telephone: profile.phone,
-              image: 'https://amanbuilds.me/web-app-manifest-512x512.png',
+              image: 'https://alihamzasultan.vercel.app/web-app-manifest-512x512.png',
               workLocation: {
                 '@type': 'Place',
                 name: 'Remote',
@@ -207,8 +214,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: `${profile.name} Portfolio`,
-              url: 'https://amanbuilds.me',
-              logo: 'https://amanbuilds.me/web-app-manifest-512x512.png',
+              url: 'https://alihamzasultan.vercel.app',
+              logo: 'https://alihamzasultan.vercel.app/web-app-manifest-512x512.png',
               sameAs: [
                 profile.socialLinks.github,
                 profile.socialLinks.linkedin,
@@ -231,7 +238,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebSite',
-              url: 'https://amanbuilds.me',
+              url: 'https://alihamzasultan.vercel.app',
               name: `${profile.name} Portfolio`,
               description: `${profile.name} AI and Full-Stack Engineer Portfolio`,
               inLanguage: 'en-US',
@@ -243,7 +250,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} ${anton.variable} antialiased`}>
         <LoadingScreen />
         <ScrollProgress />
         <ThemeProvider>

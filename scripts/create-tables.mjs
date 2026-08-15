@@ -24,7 +24,10 @@ try {
       .filter((l) => l.trim() && !l.startsWith('#'))
       .map((l) => {
         const i = l.indexOf('=')
-        return [l.slice(0, i).trim(), l.slice(i + 1).replace(/^['"]|['"]$/g, '').trim()]
+        // Trim BEFORE stripping quotes: on CRLF files the trailing \r sits
+        // between the closing quote and end-of-string, so stripping first
+        // would leave the quote embedded in the value.
+        return [l.slice(0, i).trim(), l.slice(i + 1).trim().replace(/^['"]|['"]$/g, '')]
       })
   )
 } catch (err) {
@@ -71,6 +74,11 @@ async function setup() {
       );
     `
 
+    // Slug drives the canonical /projects/<slug> URL.
+    console.log('Ensuring "projects.slug" exists...')
+    await sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS slug TEXT;`
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS projects_slug_idx ON projects (slug);`
+
     console.log('Dropping obsolete tables if they exist...')
     await sql`DROP TABLE IF EXISTS fullstack_projects CASCADE;`
     await sql`DROP TABLE IF EXISTS data_analytics_projects CASCADE;`
@@ -93,6 +101,10 @@ async function setup() {
       );
     `
 
+    // Explicit display order: two concurrent roles cannot be ranked by date.
+    console.log('Ensuring "experiences.sort_order" exists...')
+    await sql`ALTER TABLE experiences ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;`
+
     console.log('Creating "blogs" table...')
     await sql`
       CREATE TABLE IF NOT EXISTS blogs (
@@ -107,6 +119,14 @@ async function setup() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `
+
+    // Slug drives the canonical /blogs/<slug> URL. Added separately so existing
+    // databases pick it up without a destructive rebuild.
+    console.log('Ensuring "blogs.slug" and SEO columns exist...')
+    await sql`ALTER TABLE blogs ADD COLUMN IF NOT EXISTS slug TEXT;`
+    await sql`ALTER TABLE blogs ADD COLUMN IF NOT EXISTS meta_description TEXT;`
+    await sql`ALTER TABLE blogs ADD COLUMN IF NOT EXISTS updated_date TEXT;`
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS blogs_slug_idx ON blogs (slug);`
 
     console.log('Creating "site_cards" table...')
     await sql`

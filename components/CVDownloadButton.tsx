@@ -1,4 +1,5 @@
 'use client'
+import { profile } from '@/lib/profile'
 
 import { memo, useState, useEffect } from 'react'
 
@@ -31,7 +32,7 @@ function CVDownloadButton({ buttonSize = 'lg', cvUrl }: CVDownloadButtonProps) {
         clearInterval(interval)
 
         // Trigger the actual file download
-        const url = cvUrl || '/cv/Aman_CV.pdf'
+        const url = cvUrl || profile.cvPath
         window.open(url, '_blank', 'noopener,noreferrer')
         const a = document.createElement('a')
         a.href = url

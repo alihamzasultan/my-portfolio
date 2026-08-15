@@ -1,4 +1,5 @@
 'use client'
+import { profile } from '@/lib/profile'
 
 import { useState, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
@@ -22,7 +23,7 @@ const defaultCards: QRCard[] = [
     borderColor: 'cyan',
     textColor: 'cyan',
     buttonType: 'cv',
-    linkUrl: '/cv/Aman_CV.pdf',
+    linkUrl: profile.cvPath,
   },
   {
     label: 'WhatsApp QR Code',
@@ -165,7 +166,7 @@ export default function QRSection({ initialCards }: QRSectionProps) {
                 </div>
                 <div className="mt-4 pt-4" style={{ borderTop: '2px dashed var(--neo-border)' }}>
                   {card.buttonType === 'cv' ? (
-                    <a href={card.linkUrl || '/cv/Aman_CV.pdf'} target="_blank" rel="noopener noreferrer" className="neo-btn neo-btn-yellow w-full py-2.5 text-sm uppercase tracking-wide">
+                    <a href={card.linkUrl || profile.cvPath} target="_blank" rel="noopener noreferrer" className="neo-btn neo-btn-yellow w-full py-2.5 text-sm uppercase tracking-wide">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>

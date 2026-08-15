@@ -1,7 +1,8 @@
 import TagBadge from '../components/TagBadge'
 import HomeContactQR from '../components/HomeContactQR'
 import HeroCard from '../components/HeroCard'
-import Typewriter from '../components/Typewriter'
+import HeroStage from '../components/HeroStage'
+import SectionHeading from '../components/SectionHeading'
 import ContactCard from '../components/ContactCard'
 import Link from 'next/link'
 import { ViewTransition } from 'react'
@@ -31,19 +32,19 @@ async function getProjects() {
 
 async function getExperiences() {
   try {
-    const data = await sql`SELECT * FROM experiences`
-    
-    // Sort with "Present" entries first, then by start_date descending
+    // `sort_order` is authoritative: concurrent roles cannot be ranked by date,
+    // so the primary role is pinned first. Dates only break ties.
+    const data = await sql`SELECT * FROM experiences ORDER BY sort_order ASC`
+
     const sorted = (data || []).sort((a, b) => {
-      // If both are "Present" or both are not, sort by start_date
-      if ((a.end_date === 'Present' && b.end_date === 'Present') || 
-          (a.end_date !== 'Present' && b.end_date !== 'Present')) {
-        return new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+      const order = (a.sort_order ?? 0) - (b.sort_order ?? 0)
+      if (order !== 0) return order
+      if ((a.end_date === 'Present') !== (b.end_date === 'Present')) {
+        return a.end_date === 'Present' ? -1 : 1
       }
-      // Otherwise, "Present" comes first
-      return a.end_date === 'Present' ? -1 : 1
+      return new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
     })
-    
+
     return sorted
   } catch (error) {
     console.error('Error fetching experiences:', error)
@@ -332,6 +333,9 @@ export default async function Home() {
     headingHighlight?: string
     bio?: string
     typewriterSentences?: string[]
+    name?: string
+    greeting?: string
+    status?: string
   } | undefined
 
   const heroBadge = heroData?.badge || profile.title
@@ -339,6 +343,9 @@ export default async function Home() {
   const heroHeadingHighlight = heroData?.headingHighlight || 'Portfolio'
   const heroBio = heroData?.bio || profile.bio
   const typewriterPhrases = heroData?.typewriterSentences || profile.typewriterSentences
+  const heroName = heroData?.name || profile.name
+  const heroGreeting = heroData?.greeting || 'HELLO WORLD 👋'
+  const heroStatus = heroData?.status || 'OPEN TO WORK'
 
   return (
     <div id="top" className="space-y-20">
@@ -350,15 +357,17 @@ export default async function Home() {
         ) : null
       )}
       {/* Hero Section */}
-      <section id="hero" className="py-20 fade-in overflow-visible" aria-label="Welcome section">
-        <Typewriter 
-          sentences={typewriterPhrases}
-          typingSpeed={80}
-          deletingSpeed={40}
-          pauseDuration={2500}
-        />
+      <HeroStage
+        name={heroName}
+        greeting={heroGreeting}
+        status={heroStatus}
+        typewriterSentences={typewriterPhrases}
+      />
+
+      {/* Intro cards — profile summary alongside the editable contact card */}
+      <section id="about" className="fade-in overflow-visible" aria-label="About">
         <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 items-stretch w-full overflow-visible">
-          <HeroCard 
+          <HeroCard
             badge={heroBadge}
             headingPrefix={heroHeadingPrefix}
             headingHighlight={heroHeadingHighlight}
@@ -371,10 +380,7 @@ export default async function Home() {
 
       {/* Expertise Section */}
       <section id="expertise" className="fade-in overflow-visible" aria-label="Expertise">
-        <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold bg-neo-pink border-neo border-neo-border px-4 py-2 shadow-neo -rotate-1">Expertise</h2>
-          <div className="neo-rule"></div>
-        </div>
+        <SectionHeading index="02" label="Expertise" title="What I Do" tag="Building the future ✦" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full overflow-visible">
           {techCategories.map((cat, idx) => (
@@ -400,64 +406,67 @@ export default async function Home() {
 
       {/* Projects Section */}
       <section id="projects" className="fade-in overflow-visible" aria-label="Projects">
-        <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold bg-neo-blue border-neo border-neo-border px-4 py-2 shadow-neo -rotate-1">Projects</h2>
-          <div className="neo-rule"></div>
-        </div>
+        <SectionHeading index="03" label="Projects" title="Selected Work" />
         
         {safeProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full overflow-visible" role="list">
+            {/* Uniform `gap-4` owns every vertical space in the card, so the
+                rhythm is identical across cards regardless of text length, and
+                `mt-auto` on the actions row keeps the buttons aligned. */}
             {safeProjects.map((p: any, idx: number) => (
               <div
                 key={String(p.id)}
-                className="group neo-card neo-tilt acc-blue p-5 sm:p-6 flex flex-col w-full"
+                className="group neo-card neo-tilt acc-blue p-5 sm:p-6 flex flex-col gap-4 w-full"
                 role="listitem"
                 suppressHydrationWarning
               >
-                <div className="card-top">
+                <div className="card-top !mb-0">
                   <span className="card-cat">Project</span>
                 </div>
                 <ViewTransition name={`project-media-${p.id}`} share="auto" default="none">
-                  <div className="w-full h-full flex flex-col">
+                  <div className="w-full">
                     {p.image ? (
-                      <div className="mb-4 rounded-neo overflow-hidden h-40 sm:h-48 border-neo border-neo-border bg-[color:var(--neo-surface-2)] flex items-center justify-center">
-                        <img src={p.image} alt={`Screenshot of ${p.title} project`} className="w-full h-full object-cover" decoding="async" fetchPriority="high" />
+                      <div className="rounded-neo overflow-hidden aspect-[1200/630] w-full border-neo border-neo-border bg-[color:var(--neo-surface-2)] flex items-center justify-center">
+                        <img src={p.image} alt={`Cover art for ${p.title}`} className="w-full h-full object-cover" decoding="async" fetchPriority="high" />
                       </div>
                     ) : p.demo_video ? (
-                      <div className="mb-4 rounded-neo overflow-hidden h-40 sm:h-48 border-neo border-neo-border bg-[color:var(--neo-surface-2)] flex items-center justify-center">
+                      <div className="rounded-neo overflow-hidden aspect-[1200/630] w-full border-neo border-neo-border bg-[color:var(--neo-surface-2)] flex items-center justify-center">
                         <svg className="w-16 h-16 text-[color:var(--neo-ink)]" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                         </svg>
                       </div>
                     ) : (
-                      <div className="mb-4 rounded-neo overflow-hidden h-40 sm:h-48 bg-neo-blue border-neo border-neo-border flex items-center justify-center">
+                      <div className="rounded-neo overflow-hidden aspect-[1200/630] w-full bg-neo-blue border-neo border-neo-border flex items-center justify-center">
                         <span className="text-center px-4 font-extrabold">{p.title}</span>
                       </div>
                     )}
                   </div>
                 </ViewTransition>
-                
-              <div className="mb-4">
-                <h3 className="text-xl font-extrabold group-hover:text-[color:var(--neo-blue)] transition duration-200 break-words" id={`project-${p.id}`}>
+
+                <h3 className="text-xl font-extrabold group-hover:text-[color:var(--neo-blue)] transition duration-200 break-words line-clamp-2" id={`project-${p.id}`}>
                   {p.title}
                 </h3>
-              </div>
+
                 {p.description && (
-                  <p className="text-gray-400 text-sm mb-4">{p.description}</p>
+                  <p className="text-[color:var(--neo-ink-soft)] text-sm line-clamp-3">{p.description}</p>
                 )}
-                
+
                 {p.tags && p.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {p.tags.map((tag: string, tIdx: number) => (
-                      <TagBadge key={tIdx} tag={tag} variant="blue" />
+                  <div className="flex flex-wrap gap-2">
+                    {/* Cards show a summary; the details page lists every tag. */}
+                    {p.tags.slice(0, 4).map((tag: string, tIdx: number) => (
+                      <TagBadge key={tIdx} tag={tag} variant="auto" />
                     ))}
+                    {p.tags.length > 4 && (
+                      <span className="neo-tag neo-tag-cyan">+{p.tags.length - 4}</span>
+                    )}
                   </div>
                 )}
-                
+
                 <div className="flex flex-wrap gap-3 mt-auto items-center">
                   {/* Details Link */}
                   {/* @ts-ignore */}
-                  <Link href={`/projects/${p.id}`} prefetch transitionTypes={['nav-forward']} className="neo-btn neo-btn-blue text-sm py-1.5 px-3">
+                  <Link href={`/projects/${p.slug || p.id}`} prefetch transitionTypes={['nav-forward']} className="neo-btn neo-btn-blue text-sm py-1.5 px-3">
                     Details →
                   </Link>
                   
@@ -507,122 +516,114 @@ export default async function Home() {
 
 
 
-      {/* Experience Section */}
-      <section id="experience" className="fade-in" aria-label="Work experience">
-        <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold bg-neo-lime border-neo border-neo-border px-4 py-2 shadow-neo -rotate-1">Experience</h2>
-          <div className="neo-rule"></div>
-        </div>
-        
-        {experiences.length > 0 ? (
-          <div className="relative" role="list">
-            {/* Vertical lime line — centered behind the dot column */}
-            <div
-              className="absolute top-0 bottom-0 w-[3px] rounded-full z-0"
-              style={{ left: 'calc(14px - 1.5px)', background: 'var(--neo-lime)' }}
-              aria-hidden="true"
-            />
+      {/* Experience Section — a dark terminal panel that breaks out of the
+          page's padded column, same full-bleed trick as the hero. */}
+      <section
+        id="experience"
+        className="fade-in relative isolate ml-[calc(50%-50vw)] w-screen overflow-hidden border-y-2 border-black bg-[#141414] px-4 py-16 sm:px-8 lg:py-24"
+        aria-label="Work experience"
+        /* This panel is dark in both themes, but globals.css sets a bare
+           `h1..h6 { color: var(--neo-ink) }`. That rule is unlayered, so it wins
+           over Tailwind's layered utilities and headings came out dark-on-dark
+           in light mode. Re-pointing the token locally fixes every descendant. */
+        style={{ ['--neo-ink' as string]: '#ffffff' } as React.CSSProperties}
+      >
+        {/* Faint grid backdrop */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.16]"
+          style={{
+            backgroundImage:
+              'linear-gradient(#3f3f46 1px, transparent 1px), linear-gradient(90deg, #3f3f46 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+          }}
+        />
 
-            {experiences.map((exp: any, idx: number) => {
-              const isCurrent = exp.end_date === 'Present'
-              return (
-                <div key={String(exp.id)} className="flex gap-5 mb-6 last:mb-0" role="listitem">
-                  {/* Dot column */}
-                  <div className="relative w-7 flex-shrink-0 flex flex-col items-center">
-                    {/* Spacer above dot */}
-                    <div className="flex-1 min-h-[12px]" />
-                    {/* Dot with background halo that breaks the line */}
+        <div className="mx-auto w-full max-w-6xl">
+          <SectionHeading index="04" label="Experience" title="My Journey" tone="dark" />
+
+          {experiences.length > 0 ? (
+            <div className="relative" role="list">
+              {experiences.map((exp: any) => {
+                const isCurrent = exp.end_date === 'Present'
+                return (
+                  <div key={String(exp.id)} className="mb-6 flex gap-5 last:mb-0" role="listitem">
+                    {/* Timeline rail */}
                     <div
-                      className={`relative z-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isCurrent ? 'w-6 h-6' : 'w-5 h-5'
-                      }`}
-                      style={{ background: 'var(--neo-bg)' }}
+                      className="w-1 shrink-0 bg-neo-yellow"
                       aria-hidden="true"
-                    >
-                      <div
-                        className={`rounded-full border-neo border-neo-border ${
-                          isCurrent ? 'w-4 h-4' : 'w-3 h-3'
-                        }`}
-                        style={{
-                          background: 'var(--neo-lime)',
-                          animation: isCurrent ? 'neoTimelinePulse 2.4s ease-in-out infinite' : 'none',
-                        }}
-                      />
-                    </div>
-                    {/* Spacer below dot */}
-                    <div className="flex-1 min-h-[12px]" />
-                  </div>
+                    />
 
-                  {/* Experience Card */}
-                  <div className="flex-1 neo-card neo-tilt acc-lime p-6" suppressHydrationWarning>
-                    <div className="card-top">
-                      <span className="card-cat">Experience</span>
-                    </div>
-                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-semibold text-white">{exp.title}</h3>
-                        <p className="text-green-400 font-semibold text-lg">{exp.organization}</p>
-                        {exp.location && <p className="text-gray-400 text-sm">{exp.location}</p>}
+                    <div className="flex-1 border-2 border-neo-lime bg-[#1c1c1c] p-6">
+                      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0">
+                          <h3 className="text-xl font-bold text-white sm:text-2xl">{exp.title}</h3>
+                          <div className="mt-2 flex flex-wrap items-center gap-3">
+                            <span className="bg-neo-lime px-2.5 py-1 font-mono text-xs font-bold text-black">
+                              {exp.organization}
+                            </span>
+                            {exp.location && (
+                              <span className="font-mono text-sm text-zinc-500">{exp.location}</span>
+                            )}
+                          </div>
+                        </div>
+                        <p className="shrink-0 whitespace-nowrap font-mono text-sm text-[color:var(--neo-yellow)]">
+                          {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                          {' - '}
+                          {isCurrent
+                            ? 'Present'
+                            : new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-400 whitespace-nowrap">
-                        {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                        {' - '}
-                        {exp.end_date === 'Present' ? 'Present' : new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                      </p>
+
+                      {exp.description && (
+                        <p className="border-t border-zinc-800 pt-4 text-sm leading-relaxed text-zinc-300 sm:text-base">
+                          {exp.description}
+                        </p>
+                      )}
+
+                      {exp.highlights && exp.highlights.length > 0 && (
+                        <ul className="mt-4 space-y-2">
+                          {exp.highlights.map((highlight: string, hIdx: number) => (
+                            <li key={hIdx} className="flex items-start gap-3 text-sm text-zinc-400">
+                              <span className="mt-0.5 font-bold text-[color:var(--neo-lime)]" aria-hidden="true">
+                                &gt;
+                              </span>
+                              <span>{highlight}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {exp.tags && exp.tags.length > 0 && (
+                        <div className="mt-5 flex flex-wrap gap-2">
+                          {exp.tags.map((tag: string, tIdx: number) => (
+                            <TagBadge key={tIdx} tag={tag} variant="terminal" />
+                          ))}
+                        </div>
+                      )}
                     </div>
-
-                    {exp.description && (
-                      <p className="text-gray-300 text-sm leading-relaxed mb-4">{exp.description}</p>
-                    )}
-
-                    {exp.highlights && exp.highlights.length > 0 && (
-                      <ul className="space-y-2 mb-4">
-                        {exp.highlights.map((highlight: string, hIdx: number) => (
-                          <li key={hIdx} className="text-gray-400 text-sm flex items-start gap-3">
-                            <span className="text-green-400 font-bold mt-0.5">•</span>
-                            <span>{highlight}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {exp.tags && exp.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-700">
-                        {exp.tags.map((tag: string, tIdx: number) => (
-                          <TagBadge key={tIdx} tag={tag} variant="green" />
-                        ))}
-                      </div>
-                    )}
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <Empty className="acc-lime">
-            <Empty.Content>
-              <Empty.Icon className="size-10 md:size-12 text-[color:var(--neo-lime)]" />
-              <Empty.Title>No Experience Logged</Empty.Title>
-              <Empty.Separator />
-              <Empty.Description>
-                Work experience details are not available yet. Check back later!
-              </Empty.Description>
-            </Empty.Content>
-          </Empty>
-        )}
+                )
+              })}
+            </div>
+          ) : (
+            <p className="border-2 border-zinc-700 bg-[#1c1c1c] p-8 text-center font-mono text-zinc-400">
+              No experience logged yet.
+            </p>
+          )}
+        </div>
       </section>
 
       {/* Blogs Section */}
       <section id="blogs" className="fade-in overflow-visible" aria-label="Blog posts and articles">
-        <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold bg-neo-yellow border-neo border-neo-border px-4 py-2 shadow-neo -rotate-1">Blogs</h2>
-          <div className="neo-rule"></div>
-        </div>
-        
+        <SectionHeading index="05" label="Blogs" title="Writing" tag="View all posts →" tagHref="/blogs" />
+
         {blogs.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-visible" role="list">
-            {blogs.map((blog: any) => {
-              const readUrl = blog.content ? `/blogs/${blog.id}` : (blog.url || '#')
+            {blogs.slice(0, 3).map((blog: any) => {
+              // Prefer the slug so internal links point at the canonical URL.
+              const readUrl = blog.content ? `/blogs/${blog.slug || blog.id}` : (blog.url || '#')
               return (
                 <div
                   key={String(blog.id)}
@@ -652,9 +653,12 @@ export default async function Home() {
 
                         {blog.tags && blog.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-4">
-                            {blog.tags.map((tag: string, tIdx: number) => (
-                              <TagBadge key={tIdx} tag={tag} variant="yellow" />
+                            {blog.tags.slice(0, 3).map((tag: string, tIdx: number) => (
+                              <TagBadge key={tIdx} tag={tag} variant="auto" />
                             ))}
+                            {blog.tags.length > 3 && (
+                              <span className="neo-tag neo-tag-cyan">+{blog.tags.length - 3}</span>
+                            )}
                           </div>
                         )}
                       </div>
@@ -685,7 +689,7 @@ export default async function Home() {
               <Empty.Title>No Blogs Published Yet</Empty.Title>
               <Empty.Separator />
               <Empty.Description>
-                Aman hasn't published any blogs yet. Check back soon!
+                No blogs published yet. Check back soon!
               </Empty.Description>
             </Empty.Content>
           </Empty>
@@ -695,7 +699,9 @@ export default async function Home() {
 
 
       {/* Bottom Section Grid - Contact & QR Codes Side by Side (lazy-mounted) */}
-      <HomeContactQR qrCards={qrCards as any} />
+      <section id="contact" aria-label="Contact">
+        <HomeContactQR qrCards={qrCards as any} />
+      </section>
     </div>
   )
 }

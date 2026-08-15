@@ -179,7 +179,7 @@ export default function ContactCard({ initialLinks, initialCvPath }: ContactCard
 
                   <div className="neo-panel p-3 space-y-2 border-2 border-black bg-[color:var(--neo-surface)]">
                     <span className="text-xs font-extrabold uppercase tracking-wider text-current">CV Download Path</span>
-                    <input type="text" value={cvPath} onChange={(e) => setCvPath(e.target.value)} placeholder="/cv/Aman_CV.pdf" className="neo-input !py-1.5 text-sm border-2 border-black bg-[color:var(--neo-surface)] text-current" />
+                    <input type="text" value={cvPath} onChange={(e) => setCvPath(e.target.value)} placeholder={profile.cvPath} className="neo-input !py-1.5 text-sm border-2 border-black bg-[color:var(--neo-surface)] text-current" />
                   </div>
 
                   <button onClick={handleSave} disabled={saving} className="neo-btn neo-btn-cyan w-full py-2 text-sm border-2 border-black shadow-[4px_4px_0_#000] text-black">
@@ -190,7 +190,7 @@ export default function ContactCard({ initialLinks, initialCvPath }: ContactCard
                 <div className="flex flex-col flex-1">
                   {/* Console welcome */}
                   <div className="text-[10px] text-zinc-500 dark:text-zinc-400 mb-4 select-none">
-                    Aman-OS v1.5.0 (tty1)<br/>
+                    {profile.name.split(" ")[0]}-OS v1.5.0 (tty1)<br/>
                     System online. Executing terminal query...
                   </div>
 

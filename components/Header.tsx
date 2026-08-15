@@ -1,13 +1,67 @@
 'use client'
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { useTheme } from './ThemeProvider'
-import { profile } from '@/lib/profile'
 
+// Each nav item is its own bordered tile with a hard offset shadow, so it stays
+// legible against whatever scrolls beneath the transparent header.
 const navLink =
-  'whitespace-nowrap font-bold text-[color:var(--neo-ink)] hover:bg-neo-yellow px-2 py-1 border-2 border-transparent hover:border-neo-border transition-all duration-100'
+  'whitespace-nowrap font-bold text-[color:var(--neo-ink)] bg-[color:var(--neo-surface)] px-4 py-2 border-2 border-neo-border shadow-[3px_3px_0_var(--neo-shadow)] hover:bg-neo-yellow hover:text-black hover:-translate-y-0.5 active:translate-y-0 active:shadow-[1px_1px_0_var(--neo-shadow)] transition-all duration-100'
+
+// `section` is the element id the scroll-spy watches; items without one (the
+// standalone Blogs page) are highlighted by pathname instead.
+const NAV_ITEMS = [
+  { label: 'About', href: '/#about', section: 'about' },
+  { label: 'Expertise', href: '/#expertise', section: 'expertise' },
+  { label: 'Projects', href: '/#projects', section: 'projects' },
+  { label: 'Experience', href: '/#experience', section: 'experience' },
+  { label: 'Blogs', href: '/blogs' },
+  { label: 'Contact', href: '/#contact', section: 'contact' },
+]
+
+const navLinkActive =
+  'whitespace-nowrap font-bold px-4 py-2 border-2 border-neo-border shadow-[3px_3px_0_var(--neo-shadow)] bg-neo-yellow text-black -translate-y-0.5 transition-all duration-100'
+
+/**
+ * Highlights the nav item whose section is currently in view.
+ *
+ * Uses IntersectionObserver with a top margin equal to the fixed header height,
+ * so a section counts as "current" once it clears the header rather than when
+ * it first touches the viewport edge.
+ */
+function useActiveSection(enabled: boolean): string | null {
+  const [active, setActive] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!enabled) return
+    const ids = NAV_ITEMS.map((i) => i.section).filter(Boolean) as string[]
+    const nodes = ids
+      .map((id) => document.getElementById(id))
+      .filter((n): n is HTMLElement => Boolean(n))
+    if (!nodes.length) return
+
+    const visible = new Map<string, number>()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.set(entry.target.id, entry.intersectionRatio)
+          else visible.delete(entry.target.id)
+        }
+        // Pick the section nearest the top of those currently on screen.
+        const onScreen = ids.filter((id) => visible.has(id))
+        setActive(onScreen.length ? onScreen[0] : null)
+      },
+      { rootMargin: '-96px 0px -55% 0px', threshold: [0, 0.15, 0.5] }
+    )
+
+    nodes.forEach((n) => observer.observe(n))
+    return () => observer.disconnect()
+  }, [enabled])
+
+  return active
+}
 
 
 function HeaderComponent() {
@@ -18,6 +72,12 @@ function HeaderComponent() {
   const pathname = usePathname()
   const isAdmin = session?.user?.email
   const isAdminPage = pathname.startsWith('/console')
+  const isHome = pathname === '/'
+  const activeSection = useActiveSection(isHome)
+
+  /** A nav item is current if its section is in view, or its page is open. */
+  const isCurrent = (item: (typeof NAV_ITEMS)[number]) =>
+    item.section ? isHome && activeSection === item.section : pathname.startsWith(item.href)
 
   const ThemeToggle = () => (
     <button
@@ -38,31 +98,20 @@ function HeaderComponent() {
   )
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-40"
-      style={{
-        background: 'var(--neo-surface)',
-        borderBottom: 'var(--neo-bw) solid var(--neo-border)',
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center gap-6">
+    <header className="fixed top-0 left-0 right-0 z-40">
+      <div className="w-full px-4 sm:px-6 lg:px-12 py-4 flex justify-between items-center gap-6">
         <Link
           href={isAdminPage ? '/' : '/#top'}
           onClick={() => setMenuOpen(false)}
-          className="mr-4 lg:mr-10 shrink-0 flex items-center gap-3 hover:-translate-y-0.5 transition-transform duration-100"
+          className="mr-4 lg:mr-10 shrink-0 hover:-translate-y-0.5 transition-transform duration-100"
         >
-          <span className="neo-card neo-card-alt w-14 h-14 p-1.5 flex items-center justify-center shrink-0 -rotate-1">
-            <img src="/favicon.svg?v=3" alt="" width={48} height={48} className="w-full h-full object-contain" />
-          </span>
-          <span className="text-xl sm:text-2xl font-extrabold bg-neo-yellow px-3 py-1.5 border-neo border-neo-border shadow-neo-sm -rotate-1 flex items-center gap-1.5">
-            <span className="text-[color:var(--neo-pink)] leading-none">▘▝</span>
-            {profile.name}
-            <span className="neo-blink">_</span>
+          <span className="block bg-neo-yellow text-black px-5 py-2.5 border-2 border-neo-border shadow-[5px_5px_0_var(--neo-shadow)] font-mono text-xl sm:text-2xl font-black uppercase tracking-wider">
+            Portfolio
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-4 lg:gap-6">
+        <nav className="hidden md:flex items-center gap-2 lg:gap-3">
           {isAdmin && isAdminPage ? (
             <>
               <span className="font-extrabold text-xs bg-neo-pink border-2 border-neo-border px-2.5 py-1.5 uppercase tracking-widest -rotate-1 text-black shadow-neo-sm mr-2">
@@ -71,13 +120,19 @@ function HeaderComponent() {
               <Link href="/" className={navLink}>Public View</Link>
             </>
           ) : (
-            <>
-              <a href="/#top" className={navLink}>Home</a>
-              <a href="/#expertise" className={navLink}>Expertise</a>
-              <a href="/#projects" className={navLink}>Projects</a>
-              <a href="/#experience" className={navLink}>Experience</a>
-              <a href="/#blogs" className={navLink}>Blogs</a>
-            </>
+            NAV_ITEMS.map((item) => {
+              const current = isCurrent(item)
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className={current ? navLinkActive : navLink}
+                  aria-current={current ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              )
+            })
           )}
 
           <ThemeToggle />
@@ -111,7 +166,7 @@ function HeaderComponent() {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden fixed left-0 top-[60px] w-full transition-all duration-300 ease-in-out overflow-hidden ${
+        className={`md:hidden fixed left-0 top-[84px] w-full transition-all duration-300 ease-in-out overflow-hidden ${
           menuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         }`}
         style={{ background: 'var(--neo-surface)', borderBottom: menuOpen ? 'var(--neo-bw) solid var(--neo-border)' : 'none' }}
@@ -127,13 +182,20 @@ function HeaderComponent() {
               <Link href="/" onClick={() => setMenuOpen(false)} className={navLink}>Public View</Link>
             </>
           ) : (
-            <>
-              <a href="/#top" onClick={() => setMenuOpen(false)} className={navLink}>Home</a>
-              <a href="/#expertise" onClick={() => setMenuOpen(false)} className={navLink}>Expertise</a>
-              <a href="/#projects" onClick={() => setMenuOpen(false)} className={navLink}>Projects</a>
-              <a href="/#experience" onClick={() => setMenuOpen(false)} className={navLink}>Experience</a>
-              <a href="/#blogs" onClick={() => setMenuOpen(false)} className={navLink}>Blogs</a>
-            </>
+            NAV_ITEMS.map((item) => {
+              const current = isCurrent(item)
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={current ? navLinkActive : navLink}
+                  aria-current={current ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              )
+            })
           )}
 
           {isAdmin && (
